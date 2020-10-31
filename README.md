@@ -10,7 +10,7 @@ import de.f0x.lokales.lokale
 
 val usBundle = lokale(Locale.US) {
     "key" to "value"
-    "anotherKey" to { argument -> "Received $argument" }
+    "anotherKey" { argument -> "Received $argument" }
     // ...
 }
 ```

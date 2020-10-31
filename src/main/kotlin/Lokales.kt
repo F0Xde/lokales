@@ -26,19 +26,19 @@ class LokaleBundleBuilder(val locale: Locale) {
         translations[this] = ValTranslation(locale, value)
     }
 
-    infix fun String.to(fn: (String) -> String) =
+    operator fun String.invoke(fn: (String) -> String) =
         trans(fn) { fn(it[0]) }
 
-    infix fun String.to(fn: (String, String) -> String) =
+    operator fun String.invoke(fn: (String, String) -> String) =
         trans(fn) { fn(it[0], it[1]) }
 
-    infix fun String.to(fn: (String, String, String) -> String) =
+    operator fun String.invoke(fn: (String, String, String) -> String) =
         trans(fn) { fn(it[0], it[1], it[2]) }
 
-    infix fun String.to(fn: (String, String, String, String) -> String) =
+    operator fun String.invoke(fn: (String, String, String, String) -> String) =
         trans(fn) { fn(it[0], it[1], it[2], it[3]) }
 
-    infix fun String.to(fn: (String, String, String, String, String) -> String) =
+    operator fun String.invoke(fn: (String, String, String, String, String) -> String) =
         trans(fn) { fn(it[0], it[1], it[2], it[3], it[4]) }
 
     private fun String.trans(fn: Function<String>, listFn: (List<String>) -> String) {

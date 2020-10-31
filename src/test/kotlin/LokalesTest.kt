@@ -15,8 +15,8 @@ class LokalesTest : StringSpec({
 
     "lokale should translate function" {
         val bundle = lokale(Locale.US) {
-            "greeting" to { name -> "Welcome, $name!" }
-            "goodbye" to { name -> "See you later $name!" }
+            "greeting" { name -> "Welcome, $name!" }
+            "goodbye" { name -> "See you later $name!" }
         }
         bundle["greeting", "name" to "Donald"] shouldBe "Welcome, Donald!"
         bundle["goodbye", "Donald D"] shouldBe "See you later Donald D!"
@@ -29,7 +29,7 @@ class LokalesTest : StringSpec({
         val color = "blue"
         val male = true
         val bundle = lokale(Locale.US) {
-            "greeting" to { name, age, size, color, male ->
+            "greeting" { name, age, size, color, male ->
                 "Welcome $name with age $age, you are $size cm tall and like $color (gender: $male)!"
             }
         }
