@@ -2,8 +2,7 @@ package de.f0x.lokales
 
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.reflect.KFunction
-import kotlin.reflect.full.findParameterByName
+import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.reflect
 
 class LokaleBundle(
@@ -21,19 +20,24 @@ class LokaleBundleBuilder(val locale: Locale) {
         translations[this] = ValTranslation(value)
     }
 
-    infix fun String.to(fn: (String) -> String) = trans(fn)
+    infix fun String.to(fn: (String) -> String) =
+        trans(fn) { fn(it[0]) }
 
-    infix fun String.to(fn: (String, String) -> String) = trans(fn)
+    infix fun String.to(fn: (String, String) -> String) =
+        trans(fn) { fn(it[0], it[1]) }
 
-    infix fun String.to(fn: (String, String, String) -> String) = trans(fn)
+    infix fun String.to(fn: (String, String, String) -> String) =
+        trans(fn) { fn(it[0], it[1], it[2]) }
 
-    infix fun String.to(fn: (String, String, String, String) -> String) = trans(fn)
+    infix fun String.to(fn: (String, String, String, String) -> String) =
+        trans(fn) { fn(it[0], it[1], it[2], it[3]) }
 
-    infix fun String.to(fn: (String, String, String, String, String) -> String) = trans(fn)
+    infix fun String.to(fn: (String, String, String, String, String) -> String) =
+        trans(fn) { fn(it[0], it[1], it[2], it[3], it[4]) }
 
-    private fun String.trans(fn: Function<String>) {
+    private fun String.trans(fn: Function<String>, listFn: (List<String>) -> String) {
         translations[this] =
-            FnTranslation(fn.reflect() ?: throw RuntimeException("Failed to inspect given function $fn"))
+            FnTranslation(fn.reflect()!!.valueParameters.map { it.name!! }, listFn)
     }
 
     fun build() = LokaleBundle(locale, translations)
@@ -50,11 +54,15 @@ class ValTranslation(private val value: String) : Translation {
     override fun get(vararg args: Pair<String, Any?>) = value
 }
 
-class FnTranslation(private val fn: KFunction<String>) : Translation {
+class FnTranslation(
+    private val argNames: List<String>,
+    private val fn: (List<String>) -> String
+) : Translation {
     override fun get(vararg args: Pair<String, Any?>): String {
-        return fn.callBy(args.map { (name, value) ->
+        val stringArgs = argNames.map {
             // TODO special conversion for numbers, dates etc.
-            fn.findParameterByName(name)!! to value.toString()
-        }.toMap())
+            args.first { (name, _) -> name == it }.second.toString()
+        }
+        return fn(stringArgs)
     }
 }
