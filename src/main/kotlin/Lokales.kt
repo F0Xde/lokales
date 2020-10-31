@@ -57,9 +57,9 @@ sealed class Translation(val locale: Locale) {
 
     abstract operator fun get(vararg args: Pair<String, Any?>): String
 
-    fun localize(value: Any?): String {
+    fun Any?.localize(): String {
         // TODO special conversion for numbers, dates etc.
-        return value.toString()
+        return toString()
     }
 }
 
@@ -78,12 +78,12 @@ class FnTranslation(
         if (args.size != argNames.size) {
             throw IllegalArgumentException("Wrong number of arguments, expected $argNames")
         }
-        return fn(args.map { it.toString() })
+        return fn(args.map { it.localize() })
     }
 
     override fun get(vararg args: Pair<String, Any?>): String {
         val stringArgs = argNames.map {
-            args.first { (name, _) -> name == it }.second.toString()
+            args.first { (name, _) -> name == it }.second.localize()
         }
         return fn(stringArgs)
     }
