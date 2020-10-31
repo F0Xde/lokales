@@ -18,7 +18,24 @@ class LokalesTest : StringSpec({
             "greeting" to { name -> "Welcome, $name!" }
             "goodbye" to { name -> "See you later $name!" }
         }
-        bundle["greeting", "name" to "F0X"] shouldBe "Welcome, F0X!"
-        bundle["goodbye", "name" to "F0X"] shouldBe "See you later F0X!"
+        bundle["greeting", "name" to "Donald"] shouldBe "Welcome, Donald!"
+        bundle["goodbye", "Donald D"] shouldBe "See you later Donald D!"
+    }
+
+    "lokale should maintain argument order" {
+        val name = "Peter"
+        val age = 19
+        val size = 187
+        val color = "blue"
+        val male = true
+        val bundle = lokale(Locale.US) {
+            "greeting" to { name, age, size, color, male ->
+                "Welcome $name with age $age, you are $size cm tall and like $color (gender: $male)!"
+            }
+        }
+        bundle["greeting", "age" to age, "color" to color, "name" to name, "male" to male, "size" to size] shouldBe
+                "Welcome $name with age $age, you are $size cm tall and like $color (gender: $male)!"
+        bundle["greeting", name, age, size, color, male] shouldBe
+                "Welcome $name with age $age, you are $size cm tall and like $color (gender: $male)!"
     }
 })

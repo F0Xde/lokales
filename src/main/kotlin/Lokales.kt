@@ -9,6 +9,12 @@ class LokaleBundle(
     val locale: Locale,
     private val translations: Map<String, Translation>
 ) {
+    operator fun get(key: String) =
+        translations[key]?.get(*arrayOfNulls(0))
+
+    operator fun get(key: String, vararg args: Any?) =
+        translations[key]?.get(*args)
+
     operator fun get(key: String, vararg args: Pair<String, Any?>) =
         translations[key]?.get(*args)
 }
@@ -17,7 +23,7 @@ class LokaleBundleBuilder(val locale: Locale) {
     private val translations: MutableMap<String, Translation> = HashMap()
 
     infix fun String.to(value: String) {
-        translations[this] = ValTranslation(value)
+        translations[this] = ValTranslation(locale, value)
     }
 
     infix fun String.to(fn: (String) -> String) =
@@ -37,7 +43,7 @@ class LokaleBundleBuilder(val locale: Locale) {
 
     private fun String.trans(fn: Function<String>, listFn: (List<String>) -> String) {
         translations[this] =
-            FnTranslation(fn.reflect()!!.valueParameters.map { it.name!! }, listFn)
+            FnTranslation(locale, fn.reflect()!!.valueParameters.map { it.name!! }, listFn)
     }
 
     fun build() = LokaleBundle(locale, translations)
@@ -46,21 +52,37 @@ class LokaleBundleBuilder(val locale: Locale) {
 fun lokale(locale: Locale, init: LokaleBundleBuilder.() -> Unit) =
     LokaleBundleBuilder(locale).apply(init).build()
 
-interface Translation {
-    operator fun get(vararg args: Pair<String, Any?>): String
+sealed class Translation(val locale: Locale) {
+    abstract operator fun get(vararg args: Any?): String
+
+    abstract operator fun get(vararg args: Pair<String, Any?>): String
+
+    fun localize(value: Any?): String {
+        // TODO special conversion for numbers, dates etc.
+        return value.toString()
+    }
 }
 
-class ValTranslation(private val value: String) : Translation {
+class ValTranslation(locale: Locale, private val value: String) : Translation(locale) {
+    override fun get(vararg args: Any?): String = value
+
     override fun get(vararg args: Pair<String, Any?>) = value
 }
 
 class FnTranslation(
+    locale: Locale,
     private val argNames: List<String>,
     private val fn: (List<String>) -> String
-) : Translation {
+) : Translation(locale) {
+    override fun get(vararg args: Any?): String {
+        if (args.size != argNames.size) {
+            throw IllegalArgumentException("Wrong number of arguments, expected $argNames")
+        }
+        return fn(args.map { it.toString() })
+    }
+
     override fun get(vararg args: Pair<String, Any?>): String {
         val stringArgs = argNames.map {
-            // TODO special conversion for numbers, dates etc.
             args.first { (name, _) -> name == it }.second.toString()
         }
         return fn(stringArgs)
