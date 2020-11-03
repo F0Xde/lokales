@@ -6,7 +6,7 @@ Define localizations directly in your Kotlin code.
 
 Create a `LokaleBundle` using the builder function:
 ```kotlin
-import de.f0x.lokales.lokale
+import lokale
 
 val usBundle = lokale(Locale.US) {
     "key" to "value"
