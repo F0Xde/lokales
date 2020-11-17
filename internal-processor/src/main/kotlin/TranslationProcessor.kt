@@ -15,6 +15,8 @@ class TranslationProcessor : SymbolProcessor {
     private lateinit var pkg: String
     private var upTo by Delegates.notNull<Int>()
 
+    private val formatterType = ClassName("de.f0x.lokales", "LokaleFormatter")
+
     override fun init(
         options: Map<String, String>,
         kotlinVersion: KotlinVersion,
@@ -42,20 +44,22 @@ class TranslationProcessor : SymbolProcessor {
 
     private fun generateTranslations(pkg: String, upTo: Int): FileSpec =
         FileSpec.builder(pkg, "FnTranslations.kt").apply {
-            (1..upTo).forEach { addType(generateTranslationClass(it)) }
+            (1..upTo).forEach {
+                addType(generateTranslationClass(it))
+                addFunction(generateBuilderInvokeFun(pkg, it))
+                addFunction(generateFixedBuilderFun(pkg, "str", List(it) { String::class.asTypeName() }))
+                addFunction(generateFixedBuilderFun(pkg, "any", List(it) {
+                    Any::class.asTypeName().copy(nullable = true)
+                }))
+            }
         }.build()
 
     private fun generateTranslationClass(params: Int): TypeSpec {
         val stringType = String::class.asTypeName()
         val anyNullable = Any::class.asTypeName().copy(nullable = true)
 
-        val typeVariables = (0 until params).map { TypeVariableName(('A' + it).toString()) }
-        val formatterType = ClassName("de.f0x.lokales", "LokaleFormatter")
-        val fnType = LambdaTypeName.get(
-            formatterType,
-            parameters = typeVariables.toTypedArray(),
-            stringType
-        )
+        val typeVariables = createTypeVariables(params)
+        val fnType = formatterLambda(typeVariables)
 
         return TypeSpec.classBuilder("FnTranslation$params")
             .addTypeVariables(typeVariables.map { TypeVariableName(it.name, KModifier.IN) })
@@ -84,9 +88,9 @@ class TranslationProcessor : SymbolProcessor {
                     .addStatement("@Suppress(\"UNCHECKED_CAST\")")
                     .addStatement(
                         "return formatter.fn(${
-                            (0 until params).zip(typeVariables).map {
+                            (0 until params).zip(typeVariables).joinToString {
                                 "args[${it.first}] as ${it.second.name}"
-                            }.joinToString()
+                            }
                         })"
                     )
                     .build()
@@ -103,4 +107,40 @@ class TranslationProcessor : SymbolProcessor {
             )
             .build()
     }
+
+    private fun generateBuilderInvokeFun(pkg: String, params: Int): FunSpec {
+        val typeVariables = createTypeVariables(params)
+        return FunSpec.builder("invoke")
+            .addModifiers(KModifier.OPERATOR)
+            .addTypeVariables(typeVariables)
+            .receiver(String::class)
+            .addParameter("fn", formatterLambda(typeVariables))
+            .addStatement(
+                "return %T(this.formatter, fn)",
+                ClassName(pkg, "FnTranslation$params").parameterizedBy(typeVariables)
+            )
+            .build()
+    }
+
+    private fun generateFixedBuilderFun(pkg: String, name: String, paramTypes: List<TypeName>): FunSpec =
+        FunSpec.builder(name)
+            .addModifiers(KModifier.INFIX)
+            .receiver(String::class)
+            .addParameter("fn", formatterLambda(paramTypes))
+            .returns(String::class)
+            .addStatement(
+                "return %T(this.formatter, fn)",
+                ClassName(pkg, "FnTranslation${paramTypes.size}").parameterizedBy(paramTypes)
+            )
+            .build()
+
+    private fun formatterLambda(params: List<TypeName>) =
+        LambdaTypeName.get(
+            formatterType,
+            parameters = params.toTypedArray(),
+            String::class.asTypeName()
+        )
+
+    private fun createTypeVariables(params: Int): List<TypeVariableName> =
+        List(params) { TypeVariableName(('A' + it).toString()) }
 }
