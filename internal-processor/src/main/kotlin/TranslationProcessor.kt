@@ -76,7 +76,7 @@ class TranslationProcessor : SymbolProcessor {
                     .build()
             ).addProperty(
                 PropertySpec.builder("context", translationContextType, KModifier.PRIVATE)
-                    .initializer(CodeBlock.of("%T(locale)", translationContextType))
+                    .initializer("%T(locale)", translationContextType)
                     .build()
             ).addProperty(
                 PropertySpec.builder(
@@ -84,7 +84,7 @@ class TranslationProcessor : SymbolProcessor {
                     MUTABLE_MAP.parameterizedBy(String::class.asTypeName(), translationType),
                     KModifier.PRIVATE
                 )
-                    .initializer(CodeBlock.of("%T()", HashMap::class))
+                    .initializer("%T()", HashMap::class)
                     .build()
             ).addFunction(
                 FunSpec.builder("build")
@@ -122,7 +122,19 @@ class TranslationProcessor : SymbolProcessor {
                 PropertySpec.builder("fn", fnType, KModifier.PRIVATE)
                     .initializer("fn")
                     .build()
-            ).addSuperinterface(ClassName("de.f0x.lokales", "Translation"))
+            ).addProperty(
+                PropertySpec.builder(
+                    "args",
+                    List::class.parameterizedBy(String::class),
+                    KModifier.PRIVATE
+                )
+                    .initializer(
+                        "fn.%M()?.parameters?.mapNotNull { it.name } ?: emptyList()",
+                        MemberName("kotlin.reflect.jvm", "reflect"),
+                    )
+                    .build()
+            )
+            .addSuperinterface(ClassName("de.f0x.lokales", "Translation"))
             .addFunction(
                 FunSpec.builder("get")
                     .addModifiers(KModifier.OVERRIDE)
@@ -145,10 +157,15 @@ class TranslationProcessor : SymbolProcessor {
                     .addModifiers(KModifier.OVERRIDE)
                     .addParameter(
                         "args",
-                        Pair::class.asTypeName().parameterizedBy(stringType, anyNullable),
-                        KModifier.VARARG
+                        Map::class.asTypeName().parameterizedBy(stringType, anyNullable)
                     ).returns(stringType)
-                    .addStatement("TODO()")
+                    .addStatement("val posArgs = this.args.map { args[it] }")
+                    .addStatement("@Suppress(\"UNCHECKED_CAST\")")
+                    .addStatement("return context.fn(${
+                        (0 until params).zip(typeVariables).joinToString { (i, type) ->
+                            "posArgs[$i] as ${type.name}"
+                        }
+                    })")
                     .build()
             )
             .build()

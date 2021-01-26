@@ -1,11 +1,8 @@
-import de.f0x.lokales.lokale
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
-import java.util.*
 
 // Gradle doing weird shit rn
 
-//class LokalesTest : StringSpec({
+class LokalesTest : StringSpec({
 //    "lokale should translate value" {
 //        val bundle = lokale(Locale.US) {
 //            "key" to "value"
@@ -41,7 +38,7 @@ import java.util.*
 //        bundle["greeting", name, age, size, color, male] shouldBe
 //                "Welcome $name with age $age, you are $size cm tall and like $color (gender: $male)!"
 //    }
-//
-//    "lokale should format numbers" {
-//    }
-//})
+
+    "lokale should format numbers" {
+    }
+})
