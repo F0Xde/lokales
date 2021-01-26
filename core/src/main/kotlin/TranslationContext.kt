@@ -6,7 +6,7 @@ import java.time.format.FormatStyle
 import java.time.temporal.TemporalAccessor
 import java.util.*
 
-class LokaleFormatter(locale: Locale) {
+class TranslationContext(locale: Locale) {
     private val numFormat = NumberFormat.getNumberInstance(locale)
     private val intFormat = NumberFormat.getIntegerInstance(locale)
     private val percentFormat = NumberFormat.getPercentInstance(locale)

@@ -21,7 +21,7 @@ class TranslationProcessorTest : StringSpec({
             kspArgs["upTo"] = "10"
         }
         val result = compilation.compile()
-        result.exitCode shouldBe ExitCode.COMPILATION_ERROR
+        result.exitCode shouldBe ExitCode.OK
         compilation.kspSourcesDir.shouldBeADirectory()
         compilation.kspSourcesDir.shouldNotBeEmptyDirectory()
     }
