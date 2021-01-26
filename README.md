@@ -4,7 +4,7 @@ Define localizations directly in your Kotlin code.
 
 ## Usage
 
-Create a `TranslationBundle` using the builder function:
+Create a `TranslationBundle` using the builder function (up to 10 arguments are possible):
 
 ```kotlin
 de.f0x.lokales.lokale
@@ -24,10 +24,10 @@ Retrieve translations with the `get` operator functions:
 assert(usBundle["key"] == "value")
 
 // Positional arguments
-assert(usBundle["anotherKey", 23] == "Received 23")
+assert(usBundle["anotherKey", "This"] == "This has to be a string")
 
 // Named arguments
-assert(usBundle["anotherKey", "argument" to 23] == "Received 23")
+assert(usBundle["key3", "argument" to 23] == "23 can be anything")
 ```
 
 Named and positional arguments cannot be mixed, choose one.
