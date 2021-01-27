@@ -25,6 +25,13 @@ kotlin {
     }
 }
 
+tasks {
+    compileTestKotlin {
+        // Required for generated sources to work
+        incremental = false
+    }
+}
+
 ksp {
     arg("pkg", "de.f0x.lokales")
     arg("upTo", "10")

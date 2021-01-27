@@ -17,8 +17,7 @@ class TranslationProcessor : SymbolProcessor {
     private val contextType = ClassName("de.f0x.lokales", "TranslationContext")
     private val translationType = ClassName("de.f0x.lokales", "Translation")
     private val valTranslationType = ClassName("de.f0x.lokales", "ValTranslation")
-    private val translationContextType = ClassName("de.f0x.lokales", "TranslationContext")
-    private val translationBundleType = ClassName("de.f0x.lokales", "TranslationBundle")
+    private val bundleType = ClassName("de.f0x.lokales", "TranslationBundle")
 
     override fun init(
         options: Map<String, String>,
@@ -75,8 +74,8 @@ class TranslationProcessor : SymbolProcessor {
                     .initializer("locale")
                     .build()
             ).addProperty(
-                PropertySpec.builder("context", translationContextType, KModifier.PRIVATE)
-                    .initializer("%T(locale)", translationContextType)
+                PropertySpec.builder("context", contextType, KModifier.PRIVATE)
+                    .initializer("%T(locale)", contextType)
                     .build()
             ).addProperty(
                 PropertySpec.builder(
@@ -88,8 +87,8 @@ class TranslationProcessor : SymbolProcessor {
                     .build()
             ).addFunction(
                 FunSpec.builder("build")
-                    .returns(translationBundleType)
-                    .addStatement("return %T(locale, translations)", translationBundleType)
+                    .returns(bundleType)
+                    .addStatement("return %T(locale, translations)", bundleType)
                     .build()
             ).addFunction(
                 FunSpec.builder("to")
